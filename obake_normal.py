@@ -13,7 +13,38 @@ class OBake_OT_bake_normal(bpy.types.Operator):
     bl_idname = "obake.bake_normal"
     bl_label = "Bake Normal map"
 
-    tex_size: bpy.props.EnumProperty(items=texture_size_items, default="512", name="Texture Size")
+    tex_size: bpy.props.EnumProperty(
+        items=texture_size_items,
+        default="512",
+        name="Texture Size"
+    )
+
+    extrusion: bpy.props.FloatProperty(
+        name="Extrusion",
+        soft_min=0.0,
+        soft_max=1.0,
+        precision=3,
+        step=1,
+        description="Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes"
+    )
+
+    ray_distance: bpy.props.FloatProperty(
+        name="Max Ray Distance",
+        soft_min=0.0,
+        soft_max=1.0,
+        precision=3,
+        step=1,
+        description="he maximum ray distance for matching points between the active and selected objects. If zero, there is no limit",
+    )
+
+    margin_px: bpy.props.IntProperty(
+        name="Margin",
+        soft_min=0,
+        soft_max=64,
+        default=16,
+        description="Extends the baked result as a post process filter"
+    )
+
 
     def setup_material(self, context):
         mat_name = "OBake_mat"
@@ -54,7 +85,10 @@ class OBake_OT_bake_normal(bpy.types.Operator):
             "INVOKE_DEFAULT",
             type="NORMAL",
             use_clear=True,
-            use_selected_to_active=True
+            use_selected_to_active=True,
+            cage_extrusion=self.extrusion,
+            max_ray_distance=self.ray_distance,
+            margin=self.margin_px
         )
 
     @classmethod
