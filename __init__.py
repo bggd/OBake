@@ -15,7 +15,9 @@ from . import _refresh_
 
 _refresh_.reload_modules()
 
-classes = ()
+from .obake_normal import *
+
+classes = (OBake_OT_bake_normal,)
 
 def register():
     for cls in classes:
