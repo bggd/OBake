@@ -76,13 +76,6 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         return mat
 
     def bake_normal(self, context):
-
-        last_samples = context.scene.cycles.samples
-        last_use_denoising = context.scene.cycles.use_denoising
-
-        context.scene.cycles.samples = 16
-        context.scene.cycles.use_denoising = False
-
         mat = self.setup_material(context)
 
         obj = context.active_object
@@ -97,9 +90,6 @@ class OBake_OT_bake_normal(bpy.types.Operator):
             max_ray_distance=self.ray_distance,
             margin=self.margin_px
         )
-
-        context.scene.cycles.samples = last_samples
-        context.scene.cycles.use_denoising = last_use_denoising
 
     @classmethod
     def poll(cls, context):
