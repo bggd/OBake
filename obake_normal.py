@@ -48,12 +48,21 @@ class OBake_OT_bake_normal(bpy.types.Operator):
 
     def setup_material(self, context):
         mat_name = "OBake_mat"
-        mat = bpy.data.materials.get(mat_name) or bpy.data.materials.new(mat_name)
+        mat = bpy.data.materials.new(mat_name)
         mat.use_nodes = True
 
         nodes = mat.node_tree.nodes
+        links = mat.node_tree.links
 
+        tex_coord = nodes.new("ShaderNodeTexCoord")
+        mapping = nodes.new("ShaderNodeMapping")
         tex = nodes.new("ShaderNodeTexImage")
+        normal_map = nodes.new("ShaderNodeNormalMap")
+
+        offset_x = 0
+        for i in [tex_coord, mapping, tex, normal_map]:
+            i.location.x = offset_x
+            offset_x += 300
 
         px = 512
         if self.tex_size == "256":
@@ -70,6 +79,14 @@ class OBake_OT_bake_normal(bpy.types.Operator):
 
         tex.image = img
         nodes.active = tex
+
+        links.new(tex_coord.outputs[2], mapping.inputs[0])
+        links.new(mapping.outputs[0], tex.inputs[0])
+        links.new(tex.outputs[0], normal_map.inputs[1])
+
+        bsdf = nodes["Principled BSDF"]
+
+        links.new(normal_map.outputs[0], bsdf.inputs[5])
 
         return mat
 
