@@ -16,6 +16,7 @@ from . import _refresh_
 _refresh_.reload_modules()
 
 from .obake_normal import *
+from .obake_on_bake_complete import *
 
 classes = (OBake_OT_bake_normal,)
 
@@ -23,9 +24,13 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
+    bpy.app.handlers.object_bake_complete.append(on_bake_complete)
+
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
+
+    bpy.app.handlers.object_bake_complete.remove(on_bake_complete)
 
 if __name__ == "__main__":
     register()
