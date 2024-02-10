@@ -51,10 +51,10 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         mat = bpy.data.materials.get(mat_name) or bpy.data.materials.new(mat_name)
         mat.use_nodes = True
 
-        node_tree = mat.node_tree
+        nodes = mat.node_tree.nodes
 
         tex_name = "OBake_tex"
-        tex = node_tree.nodes.get(tex_name) or node_tree.nodes.new("ShaderNodeTexImage")
+        tex = nodes.get(tex_name) or nodes.new("ShaderNodeTexImage")
         tex.name = tex_name
 
         px = 512
@@ -71,7 +71,7 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         img = bpy.data.images.get(img_name) or bpy.data.images.new(img_name, px, px, float_buffer=True, is_data=True)
 
         tex.image = img
-        node_tree.nodes.active = tex
+        nodes.active = tex
 
         return mat
 
