@@ -53,9 +53,7 @@ class OBake_OT_bake_normal(bpy.types.Operator):
 
         nodes = mat.node_tree.nodes
 
-        tex_name = "OBake_tex"
-        tex = nodes.get(tex_name) or nodes.new("ShaderNodeTexImage")
-        tex.name = tex_name
+        tex = nodes.new("ShaderNodeTexImage")
 
         px = 512
         if self.tex_size == "256":
