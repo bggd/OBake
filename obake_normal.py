@@ -45,7 +45,7 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         soft_max=1.0,
         precision=3,
         step=1,
-        description="he maximum ray distance for matching points between the active and selected objects. If zero, there is no limit",
+        description="The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit",
     )
 
     margin_px: bpy.props.IntProperty(
