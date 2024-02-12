@@ -82,11 +82,16 @@ class OBake_OT_bake_normal(bpy.types.Operator):
 
     def setup_material(self, context, image):
         mat_name = "OBake_mat"
-        mat = bpy.data.materials.new(mat_name)
+        mat = bpy.data.materials.get(mat_name) or bpy.data.materials.new(mat_name)
         mat.use_nodes = True
 
         nodes = mat.node_tree.nodes
         links = mat.node_tree.links
+
+        nodes.clear()
+
+        output_mat = nodes.new("ShaderNodeOutputMaterial")
+        bsdf = nodes.new("ShaderNodeBsdfPrincipled")
 
         tex_coord = nodes.new("ShaderNodeTexCoord")
         mapping = nodes.new("ShaderNodeMapping")
@@ -94,7 +99,7 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         normal_map = nodes.new("ShaderNodeNormalMap")
 
         offset_x = 0
-        for i in [tex_coord, mapping, tex, normal_map]:
+        for i in [tex_coord, mapping, tex, normal_map, bsdf, output_mat]:
             i.location.x = offset_x
             offset_x += 300
 
@@ -105,9 +110,8 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         links.new(mapping.outputs[0], tex.inputs[0])
         links.new(tex.outputs[0], normal_map.inputs[1])
 
-        bsdf = nodes["Principled BSDF"]
-
         links.new(normal_map.outputs[0], bsdf.inputs["Normal"])
+        links.new(bsdf.outputs[0], output_mat.inputs[0])
 
         return mat
 
