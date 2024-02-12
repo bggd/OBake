@@ -103,6 +103,7 @@ class OBake_OT_bake_normal(bpy.types.Operator):
             i.location.x = offset_x
             offset_x += 300
 
+        tex.name = "OBakeTargetImageTexture"
         tex.image = image
         nodes.active = tex
 
@@ -115,12 +116,22 @@ class OBake_OT_bake_normal(bpy.types.Operator):
 
         return mat
 
+    def set_target_texture(self, context, image):
+        for i in context.active_object.material_slots:
+            nodes = i.material.node_tree.nodes
+            tex = nodes.get("OBakeTargetImageTexture") or nodes.new("ShaderNodeTexImage")
+
+            tex.name = "OBakeTargetImageTexture"
+            tex.image = image
+            nodes.active = tex
+
     def bake_normal(self, context):
         img = self.setup_image(context)
-        mat = self.setup_material(context, img)
+        self.set_target_texture(context, img)
 
-        obj = context.active_object
-        obj.active_material = mat
+        if len(context.active_object.material_slots) == 0:
+            mat = self.setup_material(context, img)
+            context.active_object.active_material = mat
 
         margin_px = self.margin_px
 
