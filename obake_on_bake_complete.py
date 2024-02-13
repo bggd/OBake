@@ -7,12 +7,3 @@ def on_bake_complete(dummy):
             continue
         size = int(i.name.split("_")[-1])
         i.scale(size, size)
-
-    for i in bpy.data.materials:
-        if i.name == "OBake_mat":
-            continue
-        if i.node_tree and i.node_tree.nodes:
-            nodes = i.node_tree.nodes
-            n = nodes.get("OBakeTargetImageTexture")
-            if n:
-                nodes.remove(n)

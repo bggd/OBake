@@ -13,6 +13,11 @@ aa_items = [
     ("x2", "Subsampling 2x2", ""),
 ]
 
+bake_type_items = [
+    ("normal", "Normal", ""),
+    ("normalobj", "World space normal", ""),
+]
+
 
 class OBake_OT_bake_normal(bpy.types.Operator):
     bl_idname = "obake.bake_normal"
@@ -28,6 +33,18 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         items=aa_items,
         default="None",
         name="Antialiasing"
+    )
+
+    bake_type: bpy.props.EnumProperty(
+        items=bake_type_items,
+        default="normal",
+        name="Bake Type"
+    )
+
+    selected_to_active: bpy.props.BoolProperty(
+        name="Selected to Active",
+        default=True,
+        description="Bake Shading on the surface of selected objects to the active object"
     )
 
     extrusion: bpy.props.FloatProperty(
@@ -48,6 +65,12 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         description="The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit",
     )
 
+    clear_image: bpy.props.BoolProperty(
+        name="Clear Image",
+        default=True,
+        description="Clear Images before baking (internal only)"
+    )
+
     margin_px: bpy.props.IntProperty(
         name="Margin",
         soft_min=0,
@@ -56,7 +79,7 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         description="Extends the baked result as a post process filter"
     )
 
-    def setup_image(self, context):
+    def setup_image(self, name):
         px = 512
         if self.tex_size == "256":
             px = 256
@@ -67,7 +90,7 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         elif self.tex_size == "4k":
             px = 4096
 
-        img_name = f"OBake_tex_AA{self.aa}_{px}"
+        img_name = f"OBake_tex_AA{self.aa}_texset_{name}_{self.bake_type}_{px}"
 
         if self.aa == "x2":
             px *= 2
@@ -116,41 +139,95 @@ class OBake_OT_bake_normal(bpy.types.Operator):
 
         return mat
 
-    def set_target_texture(self, context, image):
-        for i in context.active_object.material_slots:
-            nodes = i.material.node_tree.nodes
-            tex = nodes.get("OBakeTargetImageTexture") or nodes.new("ShaderNodeTexImage")
+    def set_target_texture(self, material, image):
+        nodes = material.node_tree.nodes
+        tex = nodes.get("OBakeTargetImageTexture") or nodes.new("ShaderNodeTexImage")
 
-            tex.name = "OBakeTargetImageTexture"
-            tex.image = image
-            nodes.active = tex
+        tex.name = "OBakeTargetImageTexture"
+        tex.image = image
+        nodes.active = tex
 
     def bake_normal(self, context):
-        img = self.setup_image(context)
-        self.set_target_texture(context, img)
+        coll = bpy.data.collections.get("OBake") or bpy.data.collections.new("OBake")
+        coll.color_tag = "COLOR_06"
+        if context.scene.collection.children.get("OBake") == None:
+            context.scene.collection.children.link(coll)
 
-        if len(context.active_object.material_slots) == 0:
-            mat = self.setup_material(context, img)
-            context.active_object.active_material = mat
+        selected_objects = [obj for obj in context.selected_objects]
+        dup_objects = set()
+        active_dup_object = None
+        for obj in context.selected_objects:
+            if obj.type != "MESH":
+                continue
+            copy_obj = bpy.data.objects.get("OBake_" + obj.name)
+            if copy_obj == None:
+                copy_obj = obj.copy()
+                copy_obj.name = "OBake_" + obj.name
+            if coll.objects.get(copy_obj.name) == None:
+                coll.objects.link(copy_obj)
+            dup_objects.add(copy_obj)
+            if context.active_object == obj:
+                active_dup_object = copy_obj
+
+        for obj in selected_objects:
+            obj.select_set(0)
+
+        context.view_layer.objects.active = active_dup_object
+
+        for obj in dup_objects:
+            obj.select_set(1)
+            for i, slot in enumerate(obj.material_slots):
+                slot.link = "DATA"
+                copy_mat = bpy.data.materials.get("OBake_mat_" + slot.material.name)
+                if copy_mat == None:
+                    copy_mat = slot.material.copy()
+                    copy_mat.name = "OBake_mat_" + slot.material.name
+                image = self.setup_image(slot.material.name)
+                self.set_target_texture(copy_mat, image)
+                obj.material_slots[i].link = "OBJECT"
+                obj.material_slots[i].material = copy_mat
 
         margin_px = self.margin_px
 
         if self.aa == "x2":
             margin_px *= 2
 
+        if self.bake_type == "normal":
+            nrm_space = "TANGENT"
+            nrm_R = "POS_X"
+            nrm_G = "POS_Y"
+            nrm_B = "POS_Z"
+        else:
+            nrm_space = "OBJECT"
+            nrm_R = "POS_X"
+            nrm_G = "POS_Z"
+            nrm_B = "NEG_Y"
+
         bpy.ops.object.bake(
             "INVOKE_DEFAULT",
             type="NORMAL",
-            use_clear=True,
-            use_selected_to_active=True,
+            normal_space=nrm_space,
+            normal_r=nrm_R,
+            normal_g=nrm_G,
+            normal_b=nrm_B,
+            use_clear=self.clear_image,
+            use_selected_to_active=self.selected_to_active,
             cage_extrusion=self.extrusion,
             max_ray_distance=self.ray_distance,
             margin=margin_px
         )
 
+
     @classmethod
     def poll(cls, context):
-        return context.object.type == "MESH"
+        if context.scene.render.engine != "CYCLES":
+            return False
+
+        for obj in context.selected_objects:
+            if obj.name.find("OBake_") >= 0:
+                return False
+
+        return context.active_object and context.active_object.type == "MESH"
 
     def invoke(self, context, event):
         wm = context.window_manager
