@@ -192,12 +192,12 @@ class OBake_OT_bake_normal(bpy.types.Operator):
         if self.aa == "x2":
             margin_px *= 2
 
-        if self.bake_type == "normal":
-            nrm_space = "TANGENT"
-            nrm_R = "POS_X"
-            nrm_G = "POS_Y"
-            nrm_B = "POS_Z"
-        else:
+        nrm_space = "TANGENT"
+        nrm_R = "POS_X"
+        nrm_G = "POS_Y"
+        nrm_B = "POS_Z"
+
+        if self.bake_type == "normalobj":
             nrm_space = "OBJECT"
             nrm_R = "POS_X"
             nrm_G = "POS_Z"
