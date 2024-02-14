@@ -22,7 +22,7 @@ bake_type_items = [
 class OBJECT_OT_bake_normal(bpy.types.Operator):
     bl_idname = "obake.bake_normal"
     bl_label = "Bake Normal map"
-    bl_options = {"REGISTER"}
+    bl_options = {"REGISTER", "PRESET"}
 
     tex_size: bpy.props.EnumProperty(
         items=texture_size_items,
