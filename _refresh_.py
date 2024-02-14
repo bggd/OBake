@@ -5,6 +5,8 @@ import bpy
 from . import obake_normal
 from . import obake_on_bake_complete
 
+from . import panel_obake
+
 def reload_modules():
     if not bpy.context.preferences.view.show_developer_ui:
         return
@@ -12,3 +14,4 @@ def reload_modules():
     reload(sys.modules[__name__])
     reload(obake_normal)
     reload(obake_on_bake_complete)
+    reload(panel_obake)
