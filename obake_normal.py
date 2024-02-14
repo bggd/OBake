@@ -19,9 +19,10 @@ bake_type_items = [
 ]
 
 
-class OBake_OT_bake_normal(bpy.types.Operator):
+class OBJECT_OT_bake_normal(bpy.types.Operator):
     bl_idname = "obake.bake_normal"
     bl_label = "Bake Normal map"
+    bl_options = {"REGISTER"}
 
     tex_size: bpy.props.EnumProperty(
         items=texture_size_items,
@@ -227,7 +228,12 @@ class OBake_OT_bake_normal(bpy.types.Operator):
             if obj.name.find("OBake_") >= 0:
                 return False
 
-        return context.active_object and context.active_object.type == "MESH"
+        obj = context.active_object
+
+        if obj == None:
+            return False
+
+        return obj.type == "MESH" and obj.mode == "OBJECT"
 
     def invoke(self, context, event):
         wm = context.window_manager

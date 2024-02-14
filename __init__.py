@@ -20,7 +20,7 @@ from .obake_on_bake_complete import *
 
 from .panel_obake import *
 
-classes = (OBake_OT_bake_normal, UI_PT_OBake)
+classes = (OBJECT_OT_bake_normal, UI_PT_OBake)
 
 def register():
     for cls in classes:
