@@ -91,7 +91,7 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
         elif self.tex_size == "4k":
             px = 4096
 
-        img_name = f"OBake_tex_AA{self.aa}_texset_{name}_{self.bake_type}_{px}"
+        img_name = f"OBake_tex_AA{self.aa}_{px}_texset_{name}_{self.bake_type}"
 
         if self.aa == "x2":
             px *= 2
