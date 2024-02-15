@@ -15,7 +15,7 @@ from . import _refresh_
 
 _refresh_.reload_modules()
 
-from .obake_normal import *
+from .op_bake_normal import *
 from .obake_on_bake_complete import *
 
 from .panel_obake import *

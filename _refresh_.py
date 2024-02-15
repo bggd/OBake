@@ -2,7 +2,7 @@ from importlib import reload
 import sys
 import bpy
 
-from . import obake_normal
+from . import op_bake_normal
 from . import obake_on_bake_complete
 
 from . import panel_obake
@@ -12,6 +12,6 @@ def reload_modules():
         return
 
     reload(sys.modules[__name__])
-    reload(obake_normal)
+    reload(op_bake_normal)
     reload(obake_on_bake_complete)
     reload(panel_obake)
