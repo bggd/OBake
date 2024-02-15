@@ -1,27 +1,32 @@
 import bpy
+import pathlib
 
 from .op_bake_normal import *
 
 class OBJECT_OT_export(bpy.types.Operator):
     bl_idname = "obake.export"
     bl_label = "Export"
-    bl_options = {"REGISTER", "PRESET"}
+    bl_options = {"REGISTER", "INTERNAL"}
 
-    output_path: bpy.props.StringProperty(
+    directory: bpy.props.StringProperty(
         name="Output Path",
         default="//",
-        subtype="DIR_PATH"
+        subtype="DIR_PATH",
+        options={"HIDDEN"}
     )
 
     def export_images(self, context):
-        dst_path = bpy.path.abspath(self.output_path)
+        dst_path =  pathlib.Path(bpy.path.abspath(self.directory))
 
         for i in bpy.data.images:
             if i.name.find("OBake_tex_") < 0:
                 continue
 
-            file_path = dst_path + i.name + ".png"
-            i.save(filepath=file_path, quality=15)
+            if len(i.pixels) == 0:
+                continue
+
+            file_path = dst_path / (i.name + ".png")
+            i.save(filepath=str(file_path), quality=15)
             self.report({"INFO"}, f"{file_path} is saved!")
 
     @classmethod

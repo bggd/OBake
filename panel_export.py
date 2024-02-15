@@ -10,4 +10,7 @@ class UI_PT_OBake_Export(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("obake.export")
+        layout.prop(context.window_manager.obake_export_settings, "output_path")
+
+        op = layout.operator("obake.export")
+        op.directory = context.window_manager.obake_export_settings.output_path
