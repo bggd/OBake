@@ -9,3 +9,5 @@ class UI_PT_OBake_Export(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+
+        layout.operator("obake.export")

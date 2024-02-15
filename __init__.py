@@ -16,11 +16,13 @@ from . import _refresh_
 _refresh_.reload_modules()
 
 from .op_bake_normal import *
+from .op_export import *
 from .obake_on_bake_complete import *
 
 from .panel_obake import *
+from .panel_export import *
 
-classes = (OBJECT_OT_bake_normal, UI_PT_OBake)
+classes = (OBJECT_OT_bake_normal, OBJECT_OT_export, UI_PT_OBake, UI_PT_OBake_Export)
 
 def register():
     for cls in classes:
