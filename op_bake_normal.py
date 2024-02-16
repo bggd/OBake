@@ -1,4 +1,5 @@
 import bpy
+import numpy as np
 
 texture_size_items = [
     ("256", "256 x 256", ""),
@@ -17,7 +18,6 @@ bake_type_items = [
     ("normal", "Normal", ""),
     ("normalobj", "World space normal", ""),
 ]
-
 
 class OBJECT_OT_bake_normal(bpy.types.Operator):
     bl_idname = "obake.bake_normal"
@@ -80,7 +80,7 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
         description="Extends the baked result as a post process filter"
     )
 
-    def setup_image(self, name):
+    def setup_image(self, name, clear):
         px = 512
         if self.tex_size == "256":
             px = 256
@@ -96,7 +96,16 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
         if self.aa == "x2":
             px *= 2
 
-        img = bpy.data.images.get(img_name) or bpy.data.images.new(img_name, px, px, float_buffer=True, is_data=True)
+        img = bpy.data.images.get(img_name)
+
+        if img == None:
+            img = bpy.data.images.new(img_name, px, px, alpha=True, float_buffer=True, is_data=True)
+            clear = True
+
+        if clear:
+            ary = np.array(img.pixels)
+            ary[:] = 0.0
+            img.pixels = ary
 
         if self.aa == "x2":
             img.scale(px, px)
@@ -139,6 +148,7 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
 
         context.view_layer.objects.active = active_dup_object
 
+        images = {}
         for obj in dup_objects:
             obj.select_set(1)
             for i, slot in enumerate(obj.material_slots):
@@ -149,8 +159,11 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
                 if copy_mat == None:
                     copy_mat = slot.material.copy()
                     copy_mat.name = "OBake_mat_" + slot.material.name
-                image = self.setup_image(slot.material.name)
-                self.set_target_texture(copy_mat, image)
+                img = images.get(slot.material.name)
+                if img == None:
+                    img = self.setup_image(slot.material.name, self.clear_image)
+                    images[slot.material.name] = img
+                self.set_target_texture(copy_mat, img)
                 obj.material_slots[i].link = "OBJECT"
                 obj.material_slots[i].material = copy_mat
 
@@ -166,12 +179,14 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
         nrm_R = "POS_X"
         nrm_G = "POS_Y"
         nrm_B = "POS_Z"
+        clear_image = self.clear_image
 
         if self.bake_type == "normalobj":
             nrm_space = "OBJECT"
             nrm_R = "POS_X"
             nrm_G = "POS_Z"
             nrm_B = "NEG_Y"
+            clear_image = False
 
         bpy.ops.object.bake(
             "INVOKE_DEFAULT",
@@ -180,13 +195,15 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
             normal_r=nrm_R,
             normal_g=nrm_G,
             normal_b=nrm_B,
-            use_clear=self.clear_image,
+            use_clear=clear_image,
             use_selected_to_active=self.selected_to_active,
             cage_extrusion=self.extrusion,
             max_ray_distance=self.ray_distance,
             margin=margin_px
         )
 
+    def bake(self, context):
+        self.bake_normal(context)
 
     @classmethod
     def poll(cls, context):
@@ -209,6 +226,6 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
     def execute(self, context):
-        self.bake_normal(context)
+        self.bake(context)
 
         return {"FINISHED"}
