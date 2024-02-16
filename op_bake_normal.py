@@ -104,42 +104,6 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
         return img
 
 
-    def setup_material(self, context, image):
-        mat_name = "OBake_mat"
-        mat = bpy.data.materials.get(mat_name) or bpy.data.materials.new(mat_name)
-        mat.use_nodes = True
-
-        nodes = mat.node_tree.nodes
-        links = mat.node_tree.links
-
-        nodes.clear()
-
-        output_mat = nodes.new("ShaderNodeOutputMaterial")
-        bsdf = nodes.new("ShaderNodeBsdfPrincipled")
-
-        tex_coord = nodes.new("ShaderNodeTexCoord")
-        mapping = nodes.new("ShaderNodeMapping")
-        tex = nodes.new("ShaderNodeTexImage")
-        normal_map = nodes.new("ShaderNodeNormalMap")
-
-        offset_x = 0
-        for i in [tex_coord, mapping, tex, normal_map, bsdf, output_mat]:
-            i.location.x = offset_x
-            offset_x += 300
-
-        tex.name = "OBakeTargetImageTexture"
-        tex.image = image
-        nodes.active = tex
-
-        links.new(tex_coord.outputs["UV"], mapping.inputs[0])
-        links.new(mapping.outputs[0], tex.inputs[0])
-        links.new(tex.outputs[0], normal_map.inputs[1])
-
-        links.new(normal_map.outputs[0], bsdf.inputs["Normal"])
-        links.new(bsdf.outputs[0], output_mat.inputs[0])
-
-        return mat
-
     def set_target_texture(self, material, image):
         nodes = material.node_tree.nodes
         tex = nodes.get("OBakeTargetImageTexture") or nodes.new("ShaderNodeTexImage")
@@ -148,7 +112,7 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
         tex.image = image
         nodes.active = tex
 
-    def bake_normal(self, context):
+    def setup_bake(self, context):
         coll = bpy.data.collections.get("OBake") or bpy.data.collections.new("OBake")
         coll.color_tag = "COLOR_06"
         if context.scene.collection.children.get("OBake") == None:
@@ -189,6 +153,9 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
                 self.set_target_texture(copy_mat, image)
                 obj.material_slots[i].link = "OBJECT"
                 obj.material_slots[i].material = copy_mat
+
+    def bake_normal(self, context):
+        self.setup_bake(context)
 
         margin_px = self.margin_px
 
