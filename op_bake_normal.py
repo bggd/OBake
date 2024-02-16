@@ -178,6 +178,8 @@ class OBJECT_OT_bake_normal(bpy.types.Operator):
         for obj in dup_objects:
             obj.select_set(1)
             for i, slot in enumerate(obj.material_slots):
+                if slot.material == None:
+                    continue
                 slot.link = "DATA"
                 copy_mat = bpy.data.materials.get("OBake_mat_" + slot.material.name)
                 if copy_mat == None:
