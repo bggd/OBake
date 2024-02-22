@@ -19,7 +19,7 @@ bake_type_items = [
     ("normalobj", "World space normal", ""),
 ]
 
-class OBJECT_OT_bake_normal(bpy.types.Operator):
+class OBJECT_OT_obake_bake_normal(bpy.types.Operator):
     bl_idname = "obake.bake_normal"
     bl_label = "Bake Normal map"
     bl_options = {"REGISTER", "PRESET"}

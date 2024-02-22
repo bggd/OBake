@@ -3,7 +3,7 @@ import pathlib
 
 from .op_bake_normal import *
 
-class OBJECT_OT_export(bpy.types.Operator):
+class OBJECT_OT_obake_export(bpy.types.Operator):
     bl_idname = "obake.export"
     bl_label = "Export"
     bl_options = {"REGISTER", "INTERNAL"}

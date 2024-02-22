@@ -25,8 +25,8 @@ from .panel_obake import *
 from .panel_export import *
 
 classes = (
-    OBJECT_OT_bake_normal,
-    OBJECT_OT_export,
+    OBJECT_OT_obake_bake_normal,
+    OBJECT_OT_obake_export,
     ExpoprtSettings,
     UI_PT_OBake,
     UI_PT_OBake_Export
